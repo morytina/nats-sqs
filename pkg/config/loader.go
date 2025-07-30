@@ -15,7 +15,7 @@ type Config struct {
 	Log     LoggerConfig  `yaml:"log"`
 	Nats    NatsConfig    `yaml:"nats"`
 	Valkey  ValkeyConfig  `yaml:"valkey"`
-	Publish PublishConfig `yaml:"publish"`
+	Message MessageConfig `yaml:"message"`
 }
 
 type LoggerConfig struct {
@@ -32,7 +32,7 @@ type ValkeyConfig struct {
 	DB       int    `yaml:"db"`
 }
 
-type PublishConfig struct {
+type MessageConfig struct {
 	Worker int `yaml:"worker"`
 }
 

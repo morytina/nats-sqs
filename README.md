@@ -17,11 +17,11 @@ go run ./cmd/nats/async/
 ## main.go 
 http 단일 진입점
 
-## topic.go
-topic 과 관련된 api 
+## queue.go
+queue 관련 API
 
-## publish.go
-publish 액션과 관련된 api
+## message.go
+message 액션과 관련된 API
 
 ## subscribe.go
 subscribe 액션과 관련된 api 
@@ -29,29 +29,29 @@ subscribe 액션과 관련된 api
 ### 테스트 curl
 ```bash
 # Create API
-curl -X POST "http://localhost:8080/v1/accountid?Action=createTopic" \
+curl -X POST "http://localhost:8080/v1/accountid?Action=createQueue" \
   -H "Content-Type: application/json" \
   -d '{"name": "sns-wrk-test", "subject": "sns.wrk.test"}'
  
 # Delete API
-curl -X POST "http://localhost:8080/v1/accountid/topicid?Action=deleteTopic" \
+curl -X POST "http://localhost:8080/v1/accountid/queueid?Action=deleteQueue" \
   -H "Content-Type: application/json" \
-  -d '{"TopicSrn": "srn:scp:sns:kr-west1:accountid:sns-wrk-test"}'
+  -d '{"QueueSrn": "srn:scp:sns:kr-west1:accountid:sns-wrk-test"}'
 
 # List API
-curl "http://localhost:8080/v1/accountid?Action=listTopics"
+curl "http://localhost:8080/v1/accountid?Action=listQueues"
 
-# publish
-curl -X POST "http://localhost:8080/v1/accountid/topicid?Action=publish" \
+# message
+curl -X POST "http://localhost:8080/v1/accountid/queueid?Action=message" \
   -H "Content-Type: application/json" \
   -d '{
-        "topicName": "sns-wrk-test",
+        "queueName": "sns-wrk-test",
         "message": "회원가입 이벤트 발생",
         "subject": "sns.wrk.test"
       }'
 
-# publish status check
-curl "http://localhost:8080/v1/accountid/topicid?Action=publishCheck&messageId=<message-id>"
+# message status check
+curl "http://localhost:8080/v1/accountid/queueid?Action=messageCheck&messageId=<message-id>"
 
 ```
 
@@ -78,8 +78,8 @@ sysctl -w net.ipv4.tcp_tw_reuse=1 # 기본이 2
 # -t: 쓰레드,  -c: 커넥션개수, -d: 테스트시간, -H: "Header: value" 로 헤더추가
 # --latency : 각 요청의 지연 통계
 # -s: <script.lua> 로 custom lua 스크립트 사용. (POST, 헤더설정)
-wrk -t10 -c2000 -d10s http://localhost:8080/v1/?Action=listTopics
-wrk -t50 -c7000 -d10s -s ~/vscode/nats/lua/publish.lua http://localhost:8080/v1/accountid/topicid?Action=publish
+wrk -t10 -c2000 -d10s http://localhost:8080/v1/?Action=listQueues
+wrk -t50 -c7000 -d10s -s ~/vscode/nats/lua/publish.lua http://localhost:8080/v1/accountid/queueid?Action=message
 ```
 
 # NATS-SERVER

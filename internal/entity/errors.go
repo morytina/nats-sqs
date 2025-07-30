@@ -19,7 +19,7 @@ func (e ErrorResponse) String() string {
 	return e.Error.Code + ": " + e.Error.Message
 }
 
-// Predefined SNS errors for the Topics API.
+// Predefined SQS errors for the Queues API.
 var (
 	AuthorizationError = ErrorResponse{
 		HTTPCode: 403,
