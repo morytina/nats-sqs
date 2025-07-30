@@ -9,47 +9,47 @@ import (
 	"go.uber.org/zap"
 )
 
-type PublishHandler struct {
-	svc service.PublishService
+type MessageHandler struct {
+	svc service.MessageService
 }
 
-func NewPublishHandler(svc service.PublishService) *PublishHandler {
-	return &PublishHandler{svc: svc}
+func NewMessageHandler(svc service.MessageService) *MessageHandler {
+	return &MessageHandler{svc: svc}
 }
 
-type PublishRequest struct {
-	TopicName string `json:"topicName"`
+type MessageRequest struct {
+	QueueName string `json:"queueName"`
 	Message   string `json:"message"`
 	Subject   string `json:"subject"`
 }
 
-type PublishResponse struct {
+type MessageResponse struct {
 	MessageID string `json:"messageId"`
 }
 
-func (h *PublishHandler) Publish() echo.HandlerFunc {
+func (h *MessageHandler) Message() echo.HandlerFunc {
 	return func(c echo.Context) error {
 		ctx := c.Request().Context()
 		logger := logs.GetLogger(ctx)
 
-		var req PublishRequest
+		var req MessageRequest
 		if err := c.Bind(&req); err != nil {
 			logger.Warn("메시지 요청 파싱 실패", zap.Error(err))
 			return c.JSON(http.StatusBadRequest, map[string]string{"error": "invalid request body"})
 		}
 
-		msgID, err := h.svc.PublishAsyncMessage(ctx, req.TopicName, req.Message, req.Subject)
+		msgID, err := h.svc.SendAsyncMessage(ctx, req.QueueName, req.Message, req.Subject)
 		if err != nil {
 			logger.Error("메시지 발행 실패", zap.Error(err))
 			return c.JSON(http.StatusInternalServerError, map[string]string{"error": err.Error()})
 		}
 
 		logger.Info("메시지 발행 성공", zap.String("messageId", msgID))
-		return c.JSON(http.StatusOK, PublishResponse{MessageID: msgID})
+		return c.JSON(http.StatusOK, MessageResponse{MessageID: msgID})
 	}
 }
 
-func (h *PublishHandler) CheckAckStatus() echo.HandlerFunc {
+func (h *MessageHandler) CheckAckStatus() echo.HandlerFunc {
 	return func(c echo.Context) error {
 		ctx := c.Request().Context()
 		logger := logs.GetLogger(ctx)

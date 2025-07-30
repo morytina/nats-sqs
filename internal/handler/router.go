@@ -16,16 +16,16 @@ type ApiRouter interface {
 
 type apiRouter struct {
 	accountBaseHandlers      map[string]func() echo.HandlerFunc
-	accountTopicBaseHandlers map[string]func() echo.HandlerFunc
+	accountQueueBaseHandlers map[string]func() echo.HandlerFunc
 }
 
-func NewApiRouter(accountBaseHandlers map[string]func() echo.HandlerFunc, accountTopicBaseHandlers map[string]func() echo.HandlerFunc) ApiRouter {
-	return &apiRouter{accountBaseHandlers: accountBaseHandlers, accountTopicBaseHandlers: accountTopicBaseHandlers}
+func NewApiRouter(accountBaseHandlers map[string]func() echo.HandlerFunc, accountQueueBaseHandlers map[string]func() echo.HandlerFunc) ApiRouter {
+	return &apiRouter{accountBaseHandlers: accountBaseHandlers, accountQueueBaseHandlers: accountQueueBaseHandlers}
 }
 
 func (r *apiRouter) Register(g *echo.Group) {
 	g.Any("/:accountid", r.handleAccountBase)
-	g.Any("/:accountid/:topicid", r.handleAccountTopicBase)
+	g.Any("/:accountid/:queueid", r.handleAccountQueueBase)
 }
 
 func (r *apiRouter) handleAccountBase(c echo.Context) error {
@@ -42,11 +42,11 @@ func (r *apiRouter) handleAccountBase(c echo.Context) error {
 	return c.String(http.StatusBadRequest, "invalid Action")
 }
 
-func (r *apiRouter) handleAccountTopicBase(c echo.Context) error {
-	logs.GetLogger(c.Request().Context()).Info("handleAccountTopicBase")
+func (r *apiRouter) handleAccountQueueBase(c echo.Context) error {
+	logs.GetLogger(c.Request().Context()).Info("handleAccountQueueBase")
 	action := c.QueryParam("Action")
 
-	if handlerFunc, ok := r.accountTopicBaseHandlers[action]; ok {
+	if handlerFunc, ok := r.accountQueueBaseHandlers[action]; ok {
 		err := handlerFunc()(c)
 		metrics.ApiCallCounter.WithLabelValues(action, strconv.Itoa(c.Response().Status)).Inc()
 		return err

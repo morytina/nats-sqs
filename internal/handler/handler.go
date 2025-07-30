@@ -6,22 +6,22 @@ import (
 	"github.com/labstack/echo/v4"
 )
 
-func AccountBaseHandlers(topicSvc service.TopicService) map[string]func() echo.HandlerFunc {
-	topicHandler := NewTopicHandler(topicSvc)
+func AccountBaseHandlers(queueSvc service.QueueService) map[string]func() echo.HandlerFunc {
+	queueHandler := NewQueueHandler(queueSvc)
 
 	return map[string]func() echo.HandlerFunc{
-		"createTopic": topicHandler.Create,
-		"listTopics":  topicHandler.List,
+		"createQueue": queueHandler.Create,
+		"listQueues":  queueHandler.List,
 	}
 }
 
-func AccountTopicBaseHandlers(topicSvc service.TopicService, publishSvc service.PublishService) map[string]func() echo.HandlerFunc {
-	topicHandler := NewTopicHandler(topicSvc)
-	publishHandler := NewPublishHandler(publishSvc)
+func AccountQueueBaseHandlers(queueSvc service.QueueService, messageSvc service.MessageService) map[string]func() echo.HandlerFunc {
+	queueHandler := NewQueueHandler(queueSvc)
+	messageHandler := NewMessageHandler(messageSvc)
 
 	return map[string]func() echo.HandlerFunc{
-		"deleteTopic":  topicHandler.Delete,
-		"publish":      publishHandler.Publish,
-		"publishCheck": publishHandler.CheckAckStatus,
+		"deleteQueue":  queueHandler.Delete,
+		"message":      messageHandler.Message,
+		"messageCheck": messageHandler.CheckAckStatus,
 	}
 }

@@ -59,17 +59,17 @@ func main() {
 	valkeyRepo := repo.NewValkeyRepo(valkeyClient)
 
 	// Service resource create
-	ackDispatcher := service.NewAckDispatcher(100000, cfg.Publish.Worker, valkeyRepo) // Queue Size : TPS 100000
+	ackDispatcher := service.NewAckDispatcher(100000, cfg.Message.Worker, valkeyRepo) // Queue Size : TPS 100000
 	ackDispatcher.Start()
 	defer ackDispatcher.Stop()
 
 	ackTimeout := 30 * time.Second
-	publishSvc := service.NewPublishService(ackDispatcher, ackTimeout, natsRepo, valkeyRepo)
-	topicSvc := service.NewTopicService(natsRepo, cfg)
+	messageSvc := service.NewMessageService(ackDispatcher, ackTimeout, natsRepo, valkeyRepo)
+	queueSvc := service.NewQueueService(natsRepo, cfg)
 
 	// Handler resource create
-	accountBase := handler.AccountBaseHandlers(topicSvc)
-	accountTopicBase := handler.AccountTopicBaseHandlers(topicSvc, publishSvc)
+	accountBase := handler.AccountBaseHandlers(queueSvc)
+	accountQueueBase := handler.AccountQueueBaseHandlers(queueSvc, messageSvc)
 
 	// echo start
 	e := echo.New()
@@ -77,7 +77,7 @@ func main() {
 	imiddle.AttachMiddlewares(e, logger)
 
 	// Setup router
-	apiRouter := handler.NewApiRouter(accountBase, accountTopicBase)
+	apiRouter := handler.NewApiRouter(accountBase, accountQueueBase)
 	apiRouter.Register(e.Group(apiVer))
 
 	go func() {

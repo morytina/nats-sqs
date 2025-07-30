@@ -15,20 +15,20 @@ import (
 	"go.opentelemetry.io/otel/trace"
 )
 
-type PublishService interface {
-	PublishAsyncMessage(ctx context.Context, topicName, message, subject string) (string, error)
+type MessageService interface {
+	SendAsyncMessage(ctx context.Context, queueName, message, subject string) (string, error)
 	CheckAckStatus(ctx context.Context, id string) (string, error)
 }
 
-type publishService struct {
+type messageService struct {
 	dispatcher AckDispatcher
 	timeout    time.Duration
 	natsRepo   repo.NatsRepo
 	valkeyRepo repo.ValkeyRepo
 }
 
-func NewPublishService(dispatcher AckDispatcher, timeout time.Duration, natsRepo repo.NatsRepo, valkeyRepo repo.ValkeyRepo) PublishService {
-	return &publishService{
+func NewMessageService(dispatcher AckDispatcher, timeout time.Duration, natsRepo repo.NatsRepo, valkeyRepo repo.ValkeyRepo) MessageService {
+	return &messageService{
 		dispatcher: dispatcher,
 		timeout:    timeout,
 		natsRepo:   natsRepo,
@@ -46,18 +46,18 @@ func newAckTask(parentCtx context.Context, id string, future jetstream.PubAckFut
 	}
 }
 
-func (s *publishService) PublishAsyncMessage(ctx context.Context, topicName, message, subject string) (string, error) {
+func (s *messageService) SendAsyncMessage(ctx context.Context, queueName, message, subject string) (string, error) {
 	logger := logs.GetLogger(ctx)
-	logger.Debug("PublishAsyncMessage", logs.WithTraceFields(ctx)...)
+	logger.Debug("SendAsyncMessage", logs.WithTraceFields(ctx)...)
 
-	if topicName == "" || message == "" {
+	if queueName == "" || message == "" {
 		return "", errors.New("missing required fields")
 	}
 	if subject == "" {
-		subject = topicName
+		subject = queueName
 	}
 
-	ackFuture, err := s.natsRepo.PublishAsyncMessage(ctx, message, subject)
+	ackFuture, err := s.natsRepo.SendAsyncMessage(ctx, message, subject)
 	if err != nil {
 		return "", err
 	}
@@ -78,7 +78,7 @@ func (s *publishService) PublishAsyncMessage(ctx context.Context, topicName, mes
 	return id, nil
 }
 
-func (s *publishService) CheckAckStatus(ctx context.Context, id string) (string, error) {
+func (s *messageService) CheckAckStatus(ctx context.Context, id string) (string, error) {
 	jsonStr, err := s.valkeyRepo.GetAckStatus(ctx, id)
 
 	if err != nil || jsonStr == "" {
