@@ -22,6 +22,7 @@ func AccountQueueBaseHandlers(queueSvc service.QueueService, messageSvc service.
 	return map[string]func() echo.HandlerFunc{
 		"deleteQueue":  queueHandler.Delete,
 		"message":      messageHandler.Message,
+		"messageAsync": messageHandler.MessageAsync,
 		"messageCheck": messageHandler.CheckAckStatus,
 	}
 }
