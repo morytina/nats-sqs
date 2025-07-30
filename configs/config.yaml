@@ -1,0 +1,12 @@
+region: kr-west1
+env: dev2
+log:
+  level: info
+nats:
+  connPoolCount: 5
+valkey:
+  addr: "localhost:6379"
+  password: ""
+  db: 0
+publish:
+  worker: 100000
