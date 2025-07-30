@@ -47,7 +47,7 @@ curl -X POST "http://localhost:8080/v1/accountid/queueid?Action=message" \
   -d '{
         "queueName": "sns-wrk-test",
         "message": "회원가입 이벤트 발생",
-        "subject": "sns.wrk.test"
+        "subject": "sns-wrk-test"
       }'
 
 # asynchronous message
@@ -56,7 +56,7 @@ curl -X POST "http://localhost:8080/v1/accountid/queueid?Action=messageAsync" \
   -d '{
         "queueName": "sns-wrk-test",
         "message": "회원가입 이벤트 발생",
-        "subject": "sns.wrk.test"
+        "subject": "sns-wrk-test"
       }'
 
 # message status check
