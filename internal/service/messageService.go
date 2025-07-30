@@ -16,6 +16,7 @@ import (
 )
 
 type MessageService interface {
+	SendMessage(ctx context.Context, queueName, message, subject string) (string, error)
 	SendAsyncMessage(ctx context.Context, queueName, message, subject string) (string, error)
 	CheckAckStatus(ctx context.Context, id string) (string, error)
 }
@@ -44,6 +45,28 @@ func newAckTask(parentCtx context.Context, id string, future jetstream.PubAckFut
 		AckFuture: future,
 		TimeOut:   timeout,
 	}
+}
+
+func (s *messageService) SendMessage(ctx context.Context, queueName, message, subject string) (string, error) {
+	logger := logs.GetLogger(ctx)
+	logger.Debug("SendMessage", logs.WithTraceFields(ctx)...)
+
+	if queueName == "" || message == "" {
+		return "", errors.New("missing required fields")
+	}
+	if subject == "" {
+		subject = queueName
+	}
+	id := uuid.NewString()
+
+	ack, err := s.natsRepo.SendMessage(ctx, message, subject)
+	if err != nil {
+		_ = s.valkeyRepo.StoreAckResult(ctx, id, entity.AckResult{Status: "FAILED"})
+		return "", err
+	}
+
+	_ = s.valkeyRepo.StoreAckResult(ctx, id, entity.AckResult{Status: "ACK", Sequence: ack.Sequence})
+	return id, nil
 }
 
 func (s *messageService) SendAsyncMessage(ctx context.Context, queueName, message, subject string) (string, error) {

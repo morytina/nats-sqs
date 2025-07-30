@@ -41,8 +41,17 @@ curl -X POST "http://localhost:8080/v1/accountid/queueid?Action=deleteQueue" \
 # List API
 curl "http://localhost:8080/v1/accountid?Action=listQueues"
 
-# message
+# synchronous message
 curl -X POST "http://localhost:8080/v1/accountid/queueid?Action=message" \
+  -H "Content-Type: application/json" \
+  -d '{
+        "queueName": "sns-wrk-test",
+        "message": "회원가입 이벤트 발생",
+        "subject": "sns.wrk.test"
+      }'
+
+# asynchronous message
+curl -X POST "http://localhost:8080/v1/accountid/queueid?Action=messageAsync" \
   -H "Content-Type: application/json" \
   -d '{
         "queueName": "sns-wrk-test",

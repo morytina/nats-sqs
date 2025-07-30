@@ -10,6 +10,7 @@ import (
 )
 
 type NatsRepo interface {
+	SendMessage(ctx context.Context, message, subject string) (*jetstream.PubAck, error)
 	SendAsyncMessage(ctx context.Context, message, subject string) (jetstream.PubAckFuture, error)
 
 	CreateStream(ctx context.Context, name string) (jetstream.Stream, error)
@@ -23,6 +24,14 @@ type natsRepo struct {
 
 func NewNatsRepo(jsClient nats.JetStreamPool) NatsRepo {
 	return &natsRepo{jsClient: jsClient}
+}
+
+func (s *natsRepo) SendMessage(ctx context.Context, message, subject string) (*jetstream.PubAck, error) {
+	js, err := s.jsClient.GetJetStream(ctx)
+	if err != nil {
+		return nil, err
+	}
+	return js.Publish(ctx, subject, []byte(message))
 }
 
 func (s *natsRepo) SendAsyncMessage(ctx context.Context, message, subject string) (jetstream.PubAckFuture, error) {

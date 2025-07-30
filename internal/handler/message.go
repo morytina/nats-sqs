@@ -38,6 +38,28 @@ func (h *MessageHandler) Message() echo.HandlerFunc {
 			return c.JSON(http.StatusBadRequest, map[string]string{"error": "invalid request body"})
 		}
 
+		msgID, err := h.svc.SendMessage(ctx, req.QueueName, req.Message, req.Subject)
+		if err != nil {
+			logger.Error("메시지 발행 실패", zap.Error(err))
+			return c.JSON(http.StatusInternalServerError, map[string]string{"error": err.Error()})
+		}
+
+		logger.Info("메시지 발행 성공", zap.String("messageId", msgID))
+		return c.JSON(http.StatusOK, MessageResponse{MessageID: msgID})
+	}
+}
+
+func (h *MessageHandler) MessageAsync() echo.HandlerFunc {
+	return func(c echo.Context) error {
+		ctx := c.Request().Context()
+		logger := logs.GetLogger(ctx)
+
+		var req MessageRequest
+		if err := c.Bind(&req); err != nil {
+			logger.Warn("메시지 요청 파싱 실패", zap.Error(err))
+			return c.JSON(http.StatusBadRequest, map[string]string{"error": "invalid request body"})
+		}
+
 		msgID, err := h.svc.SendAsyncMessage(ctx, req.QueueName, req.Message, req.Subject)
 		if err != nil {
 			logger.Error("메시지 발행 실패", zap.Error(err))
